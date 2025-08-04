@@ -84,6 +84,7 @@ app_license = "mit"
 
 # before_install = "erpnext_location.install.before_install"
 # after_install = "erpnext_location.install.after_install"
+after_install = "erpnext_location.install.after_install"
 
 # Uninstallation
 # ------------
@@ -148,7 +149,7 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+scheduler_events = {
 # 	"all": [
 # 		"erpnext_location.tasks.all"
 # 	],
@@ -161,10 +162,10 @@ app_license = "mit"
 # 	"weekly": [
 # 		"erpnext_location.tasks.weekly"
 # 	],
-# 	"monthly": [
-# 		"erpnext_location.tasks.monthly"
-# 	],
-# }
+	"monthly": [
+		"erpnext_location.tasks.update_location_data"
+	],
+}
 
 # Testing
 # -------
