@@ -11,6 +11,7 @@ def after_install():
 
     # Install custom fields using fixtures
     install_custom_fields()
+    refresh_location_data(force_update=True)
 
     frappe.logger().info("erpnext_location: Post-installation setup completed")
 
