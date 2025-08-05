@@ -205,7 +205,7 @@ class LocationDataImporter:
                     country_doc.country_name = country_name
 
                 # Update country fields
-                if iso2_code:
+                if country.get("iso2"):
                     country_doc.code = iso2_code
                     self.safe_set_field(country_doc, 'iso2', iso2_code)
 
@@ -272,7 +272,7 @@ class LocationDataImporter:
         for state in states_data:
             # try:
             state_name = state.get("name", "").strip()
-            country_code = state.get("country_code", "").strip()
+            country_code = state.get("country_code", "").strip().lower()
 
             if not state_name or not country_code:
                 continue
@@ -349,7 +349,7 @@ class LocationDataImporter:
                 # try:
                 city_name = city.get("name", "").strip()
                 state_name = city.get("state_name", "").strip()
-                country_code = city.get("country_code", "").strip()
+                country_code = city.get("country_code", "").strip().lower()
 
                 if not city_name or not state_name or not country_code:
                     continue
@@ -434,3 +434,42 @@ def refresh_location_data(force_update=False):
     """Refresh all location data - called by scheduled job"""
     importer = LocationDataImporter()
     return importer.import_all_data(force_update)
+
+
+def refresh_location_data_chunked(force_update=False, chunk_size=50):
+    """Refresh location data in smaller chunks with progress updates"""
+    frappe.logger().info("Starting chunked location data import...")
+
+    try:
+        importer = LocationDataImporter()
+
+        # Set smaller batch size for better progress tracking
+        original_batch_size = importer.batch_size
+        importer.batch_size = chunk_size
+
+        # Import with progress updates
+        result = importer.import_all_data(force_update)
+
+        # Restore original batch size
+        importer.batch_size = original_batch_size
+
+        # Publish completion notification
+        frappe.publish_realtime(
+            event="location_import_completed",
+            message=f"Location data import completed successfully. {result}",
+            user="Administrator"
+        )
+
+        return result
+
+    except Exception as e:
+        frappe.logger().error(f"Chunked location data import failed: {str(e)}")
+
+        # Publish error notification
+        frappe.publish_realtime(
+            event="location_import_failed",
+            message=f"Location data import failed: {str(e)}",
+            user="Administrator"
+        )
+
+        raise

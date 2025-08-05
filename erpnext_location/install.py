@@ -11,7 +11,9 @@ def after_install():
 
     # Install custom fields using fixtures
     install_custom_fields()
-    refresh_location_data(force_update=True)
+
+    # Queue location data import as background job
+    queue_location_data_import()
 
     frappe.logger().info("erpnext_location: Post-installation setup completed")
 
@@ -31,15 +33,56 @@ def install_custom_fields():
         pass
 
 
+def queue_location_data_import():
+    """Queue location data import as a background job"""
+    try:
+        frappe.logger().info("Queuing location data import as background job...")
+
+        # Queue the chunked import job to run in background
+        frappe.enqueue(
+            method="erpnext_location.erpnext_location.utils.data_import.refresh_location_data_chunked",
+            queue="long",  # Use long queue for time-consuming tasks
+            timeout=3600,  # 1 hour timeout
+            force_update=True,
+            chunk_size=25,  # Smaller chunks for better progress
+            job_name="location_data_import"
+        )
+
+        frappe.logger().info("Location data import queued successfully. Check background jobs status.")
+
+        # Create a notification for admin
+        frappe.publish_realtime(
+            event="location_import_queued",
+            message="Location data import has been queued as a background job. This may take several minutes to complete.",
+            user=frappe.session.user
+        )
+
+    except Exception as e:
+        frappe.logger().error(f"Error queuing location data import: {str(e)}")
+        frappe.logger().info("You can manually import location data later using: bench execute erpnext_location.erpnext_location.utils.data_import.refresh_location_data")
+
+
+def manual_location_import():
+    """Manual method to import location data - can be called from console"""
+    try:
+        frappe.logger().info("Starting manual location data import...")
+        result = refresh_location_data(force_update=True)
+        frappe.logger().info(f"Manual location data import completed: {result}")
+        return result
+    except Exception as e:
+        frappe.logger().error(f"Manual location data import failed: {str(e)}")
+        raise
+
+
 def after_migrate():
     """Execute after migration"""
     frappe.logger().info("Erpnext Location migration completed successfully")
 
-    # Optional: Refresh location data after migration
+    # Queue location data import as background job instead of running synchronously
     try:
-        frappe.logger().info("Starting location data import after migration...")
-        refresh_location_data(force_update=True)
-        frappe.logger().info("Location data import completed successfully")
+        frappe.logger().info("Queuing location data import after migration...")
+        queue_location_data_import()
+        frappe.logger().info("Location data import queued successfully")
     except Exception as e:
-        frappe.logger().error(f"Error during location data import: {str(e)}")
-        frappe.logger().info("Location data import can be run manually later")
+        frappe.logger().error(f"Error queuing location data import: {str(e)}")
+        frappe.logger().info("Location data import can be run manually later using: bench execute erpnext_location.install.manual_location_import")
