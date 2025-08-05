@@ -194,11 +194,9 @@ class LocationDataImporter:
                     if existing_country_name:
                         existing_country = existing_country_name
 
-                print(country_name, iso2_code, existing_country, force_update)
                 if existing_country and not force_update:
                     continue
 
-                print(country)
                 # Create or update country
                 if existing_country:
                     country_doc = frappe.get_doc("Country", existing_country)
