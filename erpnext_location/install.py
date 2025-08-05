@@ -5,71 +5,40 @@ import frappe
 from erpnext_location.erpnext_location.utils.data_import import refresh_location_data
 
 
-def install_custom_fields():
-    """Install custom fields for Country doctype"""
-    try:
-        # Import Country customization from ERPNext Location module
-        frappe.reload_doc("erpnext_location", "doctype", "country", force=True)
-        frappe.logger().info("Country customization imported successfully")
-    except Exception as e:
-        frappe.logger().error(f"Error importing Country customization: {str(e)}")
-        # Try alternative method - direct file import
-        try:
-            import os
-            import json
-
-            # Path to customization file
-            customization_path = os.path.join(
-                frappe.get_app_path("erpnext_location"),
-                "erpnext_location", "erpnext_location", "country.json"
-            )
-
-            if os.path.exists(customization_path):
-                with open(customization_path, 'r') as f:
-                    customizations = json.load(f)
-
-                # Import customizations
-                from frappe.core.doctype.data_import.data_import import import_doc
-                for customization in customizations:
-                    if customization.get("custom_fields"):
-                        for field_data in customization["custom_fields"]:
-                            if not frappe.db.exists("Custom Field", field_data["name"]):
-                                field_doc = frappe.get_doc(field_data)
-                                field_doc.insert(ignore_permissions=True)
-
-                frappe.logger().info("Custom fields imported via direct method")
-            else:
-                frappe.logger().error(f"Customization file not found: {customization_path}")
-
-        except Exception as e2:
-            frappe.logger().error(f"Alternative import method also failed: {str(e2)}")
-
-    frappe.db.commit()
-
-
 def after_install():
-    """Execute after app installation"""
-    frappe.logger().info("Erpnext Location app installed successfully")
+    """Run after app installation"""
+    frappe.logger().info("erpnext_location: Running post-installation setup")
 
-    # Import sample data during installation
+    # Install custom fields using fixtures
+    install_custom_fields()
+
+    frappe.logger().info("erpnext_location: Post-installation setup completed")
+
+
+def install_custom_fields():
+    """Install custom fields for Country doctype using fixtures"""
     try:
-        imported_count = refresh_location_data()
-        frappe.logger().info(f"Imported {imported_count} sample countries during installation")
+        # Fixtures are automatically loaded during installation
+        # Just log that the process is happening - no need to manually reload
+        frappe.logger().info("Country custom fields will be loaded from fixtures")
 
-        # Show success message
-        frappe.msgprint(
-            f"Erpnext Location app installed successfully!<br>"
-            f"<br>To import full dataset, go to:<br>",
-            title="Installation Complete",
-            indicator="green"
-        )
-
+        # Clear any cached doctypes to ensure fresh load
+        frappe.clear_cache(doctype="Country")
+        frappe.logger().info("Country custom fields loaded from fixtures successfully")
     except Exception as e:
-        frappe.logger().error(f"Error during installation: {str(e)}")
-        frappe.msgprint(
-            f"Erpnext Location app installed, but sample data import failed.<br>"
-            f"Error: {str(e)}<br>"
-            f"You can manually import data later from Settings.",
-            title="Installation Warning",
-            indicator="orange"
-        )
+        frappe.logger().error(f"Error with Country custom fields: {str(e)}")
+        pass
+
+
+def after_migrate():
+    """Execute after migration"""
+    frappe.logger().info("Erpnext Location migration completed successfully")
+
+    # Optional: Refresh location data after migration
+    try:
+        frappe.logger().info("Starting location data import after migration...")
+        refresh_location_data(force_update=True)
+        frappe.logger().info("Location data import completed successfully")
+    except Exception as e:
+        frappe.logger().error(f"Error during location data import: {str(e)}")
+        frappe.logger().info("Location data import can be run manually later")

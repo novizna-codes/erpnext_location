@@ -86,6 +86,10 @@ app_license = "mit"
 # after_install = "erpnext_location.install.after_install"
 after_install = "erpnext_location.install.after_install"
 
+# Migration
+# ---------
+after_migrate = "erpnext_location.install.after_migrate"
+
 # Uninstallation
 # ------------
 
@@ -166,6 +170,20 @@ scheduler_events = {
 		"erpnext_location.tasks.update_location_data"
 	],
 }
+
+# Fixtures
+# --------
+
+fixtures = [
+    {
+        "doctype": "Custom Field",
+        "filters": [
+            [
+                "dt", "in", ["Country"]
+            ]
+        ]
+    }
+]
 
 # Testing
 # -------
