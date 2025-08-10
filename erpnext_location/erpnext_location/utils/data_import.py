@@ -360,10 +360,10 @@ class LocationDataImporter:
                         continue
 
                     # Create unique city identifier
-                    city_identifier = f"{city_name}"
+                    city_identifier = f"{city_name}-{state_name}"
 
                     # Check if city exists
-                    existing_city = frappe.db.exists("City", {"name": city_identifier, "state": state_name, "country_code": country_code})
+                    existing_city = frappe.db.exists("City", {"name": city_identifier})
 
                     if existing_city and not force_update:
                         continue
