@@ -67,7 +67,7 @@ class LocationDataImporter:
         """Import regions data"""
         frappe.logger().info("Importing regions data...")
 
-        regions_data = self.download_data("subregions.json")
+        regions_data = self.download_data("region.json")
         if not regions_data:
             return 0
 
