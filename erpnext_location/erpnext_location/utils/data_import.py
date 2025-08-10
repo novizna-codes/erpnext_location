@@ -346,60 +346,62 @@ class LocationDataImporter:
             batch_count += 1
 
             for city in batch:
-                # try:
-                city_name = city.get("name", "").strip()
-                state_name = city.get("state_name", "").strip()
-                country_code = city.get("country_code", "").strip().lower()
+                try:
+                    city_name = city.get("name", "").strip()
+                    state_name = city.get("state_name", "").strip()
+                    country_code = city.get("country_code", "").strip().lower()
 
-                if not city_name or not state_name or not country_code:
+                    if not city_name or not state_name or not country_code:
+                        continue
+
+                    # Find state
+                    existing_state = frappe.db.exists("State", state_name)
+                    if not existing_state:
+                        continue
+
+                    # Create unique city identifier
+                    city_identifier = f"{city_name}"
+
+                    # Check if city exists
+                    existing_city = frappe.db.exists("City", {"name": city_identifier, "state": state_name, "country_code": country_code})
+
+                    if existing_city and not force_update:
+                        continue
+
+                    # Create or update city
+                    if existing_city:
+                        city_doc = frappe.get_doc("City", existing_city)
+                    else:
+                        city_doc = frappe.new_doc("City")
+                        city_doc.city_name = city_name
+                        city_doc.state = state_name
+                        # Explicitly set the name to match the autoname format
+                        city_doc.name = city_identifier
+
+                    # Get country from state
+                    state_doc = frappe.get_doc("State", state_name)
+                    city_doc.country = state_doc.country
+                    self.safe_set_field(city_doc, 'country_code', state_doc.country_code)
+                    self.safe_set_field(city_doc, 'state_code', state_doc.state_code)
+
+                    # Geographic data
+                    if city.get("latitude"):
+                        self.safe_set_field(city_doc, 'latitude', flt(city.get("latitude")))
+                    if city.get("longitude"):
+                        self.safe_set_field(city_doc, 'longitude', flt(city.get("longitude")))
+
+                    # Reference data
+                    self.safe_set_field(city_doc, 'wikidata_id', city.get("wikiDataId", ""))
+                    self.safe_set_field(city_doc, 'external_id', str(city.get("id", "")))
+                    self.safe_set_field(city_doc, 'last_updated', now())
+                    self.safe_set_field(city_doc, 'is_active', 1)
+
+                    city_doc.save(ignore_permissions=True)
+                    imported_count += 1
+
+                except Exception as e:
+                    frappe.logger().error(f"Error importing city {city.get('name', 'Unknown')}: {str(e)}")
                     continue
-
-                # Find state
-                existing_state = frappe.db.exists("State", state_name)
-                if not existing_state:
-                    continue
-
-                # Create unique city identifier
-                city_identifier = f"{city_name}-{state_name}"
-
-                # Check if city exists
-                existing_city = frappe.db.exists("City", {"name": city_identifier})
-
-                if existing_city and not force_update:
-                    continue
-
-                # Create or update city
-                if existing_city:
-                    city_doc = frappe.get_doc("City", existing_city)
-                else:
-                    city_doc = frappe.new_doc("City")
-                    city_doc.city_name = city_name
-                    city_doc.state = state_name
-
-                # Get country from state
-                state_doc = frappe.get_doc("State", state_name)
-                city_doc.country = state_doc.country
-                self.safe_set_field(city_doc, 'country_code', state_doc.country_code)
-                self.safe_set_field(city_doc, 'state_code', state_doc.state_code)
-
-                # Geographic data
-                if city.get("latitude"):
-                    self.safe_set_field(city_doc, 'latitude', flt(city.get("latitude")))
-                if city.get("longitude"):
-                    self.safe_set_field(city_doc, 'longitude', flt(city.get("longitude")))
-
-                # Reference data
-                self.safe_set_field(city_doc, 'wikidata_id', city.get("wikiDataId", ""))
-                self.safe_set_field(city_doc, 'external_id', str(city.get("id", "")))
-                self.safe_set_field(city_doc, 'last_updated', now())
-                self.safe_set_field(city_doc, 'is_active', 1)
-
-                city_doc.save(ignore_permissions=True)
-                imported_count += 1
-
-                # except Exception as e:
-                #     frappe.logger().error(f"Error importing city {city.get('name', 'Unknown')}: {str(e)}")
-                #     continue
 
             # Commit after each batch
             frappe.db.commit()
