@@ -9,7 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # "frappe~=15.0.0" # Installed and managed by bench.
-    requests
+    "requests"
 ]
 
 [build-system]
@@ -49,7 +49,7 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
 ]
-typing-modules = ["frappe.types.DF"]
+typing-modules = ["frappe.types"]
 
 [tool.ruff.format]
 quote-style = "double"
