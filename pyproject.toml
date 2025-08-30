@@ -49,7 +49,7 @@ ignore = [
     "F722", # syntax error in forward type annotation
     "W191", # indentation contains tabs
 ]
-typing-modules = ["frappe.types"]
+typing-modules = ["frappe.types.DF"]
 
 [tool.ruff.format]
 quote-style = "double"
