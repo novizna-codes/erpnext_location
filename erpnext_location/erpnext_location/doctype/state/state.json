@@ -2,25 +2,27 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:state_name",
- "creation": "2025-08-04 12:00:00.000000",
+ "creation": "2025-08-04 12:00:00",
  "default_view": "List",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "state_name",
-  "state_code",
   "country",
-  "country_code",
-  "column_break_5",
   "state_type",
+  "column_break_5",
+  "state_code",
+  "country_code",
   "fips_code",
   "is_active",
   "section_break_9",
   "latitude",
+  "column_break_utoi",
   "longitude",
   "section_break_12",
   "external_id",
+  "column_break_vfaa",
   "last_updated"
  ],
  "fields": [
@@ -43,6 +45,7 @@
    "fieldname": "country",
    "fieldtype": "Link",
    "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Country",
    "options": "Country",
    "reqd": 1
@@ -50,6 +53,7 @@
   {
    "fieldname": "country_code",
    "fieldtype": "Data",
+   "in_standard_filter": 1,
    "label": "Country Code",
    "length": 3,
    "read_only": 1
@@ -59,10 +63,11 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "e.g., Province, State, Region, Territory",
    "fieldname": "state_type",
    "fieldtype": "Data",
-   "label": "State Type",
-   "description": "e.g., Province, State, Region, Territory"
+   "in_standard_filter": 1,
+   "label": "State Type"
   },
   {
    "fieldname": "fips_code",
@@ -74,6 +79,7 @@
    "default": "1",
    "fieldname": "is_active",
    "fieldtype": "Check",
+   "in_standard_filter": 1,
    "label": "Is Active"
   },
   {
@@ -99,21 +105,29 @@
    "label": "System Information"
   },
   {
+   "description": "ID from external data source",
    "fieldname": "external_id",
    "fieldtype": "Data",
    "label": "External ID",
-   "read_only": 1,
-   "description": "ID from external data source"
+   "read_only": 1
   },
   {
    "fieldname": "last_updated",
    "fieldtype": "Datetime",
    "label": "Last Updated",
    "read_only": 1
+  },
+  {
+   "fieldname": "column_break_utoi",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_vfaa",
+   "fieldtype": "Column Break"
   }
  ],
  "links": [],
- "modified": "2025-08-04 12:00:00.000000",
+ "modified": "2025-09-01 11:53:15.771775",
  "modified_by": "Administrator",
  "module": "Erpnext Location",
  "name": "State",
@@ -143,6 +157,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
